@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Clasificador de Funciones</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <main class="contenedor">
+        <h1>Clasificador de Funciones</h1>
+        <p class="subtitulo">Función Lineal y Función Afín · f(x) = bx + c</p>
+
+        <section class="coeficientes">
+            <div class="coef">
+                <span class="etiqueta">b =</span>
+                <span class="valor" id="valor-b">?</span>
+            </div>
+            <div class="coef">
+                <span class="etiqueta">c =</span>
+                <span class="valor" id="valor-c">?</span>
+            </div>
+            <button id="btn-generar" type="button">Generar / Cambiar</button>
+            <p id="funcion-actual" class="funcion">f(x) = bx + c</p>
+        </section>
+
+        <section class="cajas">
+            <article class="caja" id="caja-lineal">
+                <h2>LINEAL</h2>
+                <p class="condicion">Condición: c = 0 → f(x) = bx</p>
+                <ul id="lista-lineal">
+                    <li class="vacio">Presiona el botón para generar una función.</li>
+                </ul>
+            </article>
+
+            <article class="caja" id="caja-afin">
+                <h2>AFÍN</h2>
+                <p class="condicion">Condición: c ≠ 0 → f(x) = bx + c</p>
+                <ul id="lista-afin">
+                    <li class="vacio">Presiona el botón para generar una función.</li>
+                </ul>
+            </article>
+        </section>
+
+        <section class="enlaces">
+            <a href="https://www.geogebra.org/classic" target="_blank" rel="noopener">
+                Abrir GeoGebra Clásico
+            </a>
+        </section>
+    </main>
+
+    <script src="js.js"></script>
+</body>
+
+</html>
