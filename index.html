@@ -1,57 +1,119 @@
 <!DOCTYPE html>
+<!-- Documento HTML5 en español -->
 <html lang="es">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Clasificador de Funciones</title>
-    <link rel="stylesheet" href="styles.css">
+  <!-- Codificación de caracteres para tildes y símbolos matemáticos -->
+  <meta charset="UTF-8">
+  <!-- Hace que la página se adapte a pantallas de celular -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Clasificador de Funciones | Lineal, Afín y Constante</title>
+  <!-- Hoja de estilos externa (archivo separado) -->
+  <link rel="stylesheet" href="styles.css">
+  <!-- Script externo; "defer" espera a que el HTML esté cargado -->
+  <script src="js.js" defer></script>
 </head>
-
 <body>
-    <main class="contenedor">
-        <h1>Clasificador de Funciones</h1>
-        <p class="subtitulo">Función Lineal y Función Afín · f(x) = bx + c</p>
 
-        <section class="coeficientes">
-            <div class="coef">
-                <span class="etiqueta">b =</span>
-                <span class="valor" id="valor-b">?</span>
-            </div>
-            <div class="coef">
-                <span class="etiqueta">c =</span>
-                <span class="valor" id="valor-c">?</span>
-            </div>
-            <button id="btn-generar" type="button">Generar / Cambiar</button>
-            <p id="funcion-actual" class="funcion">f(x) = bx + c</p>
-        </section>
+  <!-- ENCABEZADO: título y descripción del laboratorio -->
+  <header class="encabezado">
+    <h1>Clasificador de funciones</h1>
+    <p>Genera <strong>b</strong> y <strong>c</strong> al azar entre −3 y 3 y descubre qué tipo de función es
+      <span class="formula">f(x) = bx + c</span></p>
+  </header>
 
-        <section class="cajas">
-            <article class="caja" id="caja-lineal">
-                <h2>LINEAL</h2>
-                <p class="condicion">Condición: c = 0 → f(x) = bx</p>
-                <ul id="lista-lineal">
-                    <li class="vacio">Presiona el botón para generar una función.</li>
-                </ul>
-            </article>
+  <!-- CONTENIDO PRINCIPAL -->
+  <main>
 
-            <article class="caja" id="caja-afin">
-                <h2>AFÍN</h2>
-                <p class="condicion">Condición: c ≠ 0 → f(x) = bx + c</p>
-                <ul id="lista-afin">
-                    <li class="vacio">Presiona el botón para generar una función.</li>
-                </ul>
-            </article>
-        </section>
+    <!-- SECCIÓN 1: coeficientes y botón (boceto vertical de la guía) -->
+    <section class="panel" aria-labelledby="titulo-coef">
+      <h2 id="titulo-coef">Coeficientes</h2>
 
-        <section class="enlaces">
-            <a href="https://www.geogebra.org/classic" target="_blank" rel="noopener">
-                Abrir GeoGebra Clásico
-            </a>
-        </section>
-    </main>
+      <!-- Contenedor del coeficiente b -->
+      <div class="coeficiente">
+        <span class="etiqueta">b =</span>
+        <output id="valor-b" aria-live="polite">?</output>
+      </div>
 
-    <script src="js.js"></script>
+      <!-- Contenedor del coeficiente c -->
+      <div class="coeficiente">
+        <span class="etiqueta">c =</span>
+        <output id="valor-c" aria-live="polite">?</output>
+      </div>
+
+      <!-- Botón que dispara la generación aleatoria -->
+      <button id="btn-generar" type="button">Generar / Cambiar</button>
+
+      <!-- Muestra la función resultante, por ejemplo f(x) = 2x + 1 -->
+      <p class="resultado" id="funcion-resultante">Presiona el botón para comenzar.</p>
+    </section>
+
+    <!-- SECCIÓN 2: gráfica de la función generada -->
+    <section class="panel" aria-labelledby="titulo-grafica">
+      <h2 id="titulo-grafica">Gráfica</h2>
+      <!-- Lienzo donde JavaScript dibuja el plano cartesiano -->
+      <canvas id="lienzo" width="400" height="400"
+              aria-label="Plano cartesiano con la gráfica de la función"></canvas>
+    </section>
+
+    <!-- SECCIÓN 3: cuatro cajas de clasificación; solo una se activa -->
+    <section class="clasificacion" aria-labelledby="titulo-clasif">
+      <h2 id="titulo-clasif">Clasificación</h2>
+
+      <div class="cajas">
+
+        <!-- Caja LINEAL: se activa si b ≠ 0 y c = 0 -->
+        <article class="caja" id="caja-lineal">
+          <h3>Lineal</h3>
+          <p class="condicion">Condición: b ≠ 0 y c = 0</p>
+          <ul class="propiedades"></ul>
+        </article>
+
+        <!-- Caja AFÍN: se activa si b ≠ 0 y c ≠ 0 -->
+        <article class="caja" id="caja-afin">
+          <h3>Afín</h3>
+          <p class="condicion">Condición: b ≠ 0 y c ≠ 0</p>
+          <ul class="propiedades"></ul>
+        </article>
+
+        <!-- Caja CONSTANTE: se activa si b = 0 y c ≠ 0 -->
+        <article class="caja" id="caja-constante">
+          <h3>Constante</h3>
+          <p class="condicion">Condición: b = 0 y c ≠ 0</p>
+          <ul class="propiedades"></ul>
+        </article>
+
+        <!-- Caja NO FUNCIÓN: se activa si b = 0 y c = 0 -->
+        <article class="caja" id="caja-nofuncion">
+          <h3>No función</h3>
+          <p class="condicion">Condición: b = 0 y c = 0</p>
+          <ul class="propiedades"></ul>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- SECCIÓN 4: GeoGebra y archivo .ggb -->
+    <section class="panel" aria-labelledby="titulo-geogebra">
+      <h2 id="titulo-geogebra">Modelación en GeoGebra</h2>
+      <ol>
+        <li>Abre GeoGebra Clásico y escribe la función generada.</li>
+        <li>Descarga el archivo con extensión <code>.ggb</code>.</li>
+        <li>Súbelo a tu repositorio de GitHub con el nombre <code>funcion.ggb</code>.</li>
+      </ol>
+      <!-- Enlace activo a GeoGebra Clásico (se abre en otra pestaña) -->
+      <a class="enlace" href="https://www.geogebra.org/classic" target="_blank" rel="noopener">
+        Abrir GeoGebra Clásico
+      </a>
+      <!-- Enlace al archivo .ggb publicado en GitHub Pages -->
+      <a class="enlace secundario" href="funcion.ggb" download>Descargar mi archivo .ggb</a>
+    </section>
+
+  </main>
+
+  <!-- PIE DE PÁGINA: datos del estudiante -->
+  <footer class="pie">
+    <p>Creado por Benjamin Gomez 3B</p>
+  </footer>
+
 </body>
-
 </html>

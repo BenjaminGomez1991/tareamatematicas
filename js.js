@@ -1,82 +1,174 @@
-const valorB = document.getElementById("valor-b");
-const valorC = document.getElementById("valor-c");
-const funcionActual = document.getElementById("funcion-actual");
-const btnGenerar = document.getElementById("btn-generar");
+/* ============================================================
+   script.js — Lógica del Clasificador de Funciones
+   f(x) = bx + c, con b y c enteros entre -3 y 3
+   ============================================================ */
 
-const cajaLineal = document.getElementById("caja-lineal");
-const cajaAfin = document.getElementById("caja-afin");
-const listaLineal = document.getElementById("lista-lineal");
-const listaAfin = document.getElementById("lista-afin");
+/* ---------- 1. Constantes del rango ---------- */
+const MINIMO = -3;   // valor mínimo permitido para b y c
+const MAXIMO = 3;    // valor máximo permitido para b y c
 
-// Entero aleatorio entre -10 y 10 (ambos incluidos)
-function enteroAleatorio() {
-    return Math.floor(Math.random() * 21) - 10;
+/* ---------- 2. Referencias a elementos del HTML ---------- */
+const botonGenerar   = document.getElementById("btn-generar");
+const salidaB        = document.getElementById("valor-b");
+const salidaC        = document.getElementById("valor-c");
+const textoFuncion   = document.getElementById("funcion-resultante");
+const lienzo         = document.getElementById("lienzo");
+const ctx            = lienzo.getContext("2d");
+
+/* Las cuatro cajas de clasificación */
+const cajas = {
+  lineal:     document.getElementById("caja-lineal"),
+  afin:       document.getElementById("caja-afin"),
+  constante:  document.getElementById("caja-constante"),
+  nofuncion:  document.getElementById("caja-nofuncion")
+};
+
+/* ---------- 3. Número entero aleatorio entre min y max (ambos incluidos) ---------- */
+function enteroAleatorio(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-// Texto de la pendiente según el signo de b
-function textoPendiente(b) {
-    if (b > 0) {
-        return "Pendiente b = " + b + " > 0: función creciente (sube de izquierda a derecha).";
-    } else if (b < 0) {
-        return "Pendiente b = " + b + " < 0: función decreciente (baja de izquierda a derecha).";
-    } else {
-        return "Pendiente b = 0: la recta es horizontal (ni crece ni decrece).";
-    }
-}
-
-// Expresión escrita de forma legible, ej: f(x) = -3x + 5
+/* ---------- 4. Escribe la función de forma legible: f(x) = 2x + 1 ---------- */
 function escribirFuncion(b, c) {
-    if (c === 0) {
-        return "f(x) = " + b + "x";
-    }
-    const signo = c > 0 ? "+" : "-";
-    return "f(x) = " + b + "x " + signo + " " + Math.abs(c);
+  if (b === 0 && c === 0) return "f(x) = 0";
+  if (b === 0) return "f(x) = " + c;
+
+  /* Término de x: omite el 1 (x) y escribe −x cuando b = −1 */
+  let termino;
+  if (b === 1)       termino = "x";
+  else if (b === -1) termino = "−x";
+  else               termino = b + "x";
+
+  if (c === 0) return "f(x) = " + termino;
+  const signo = c > 0 ? " + " : " − ";
+  return "f(x) = " + termino + signo + Math.abs(c);
 }
 
-function mostrarLista(lista, items) {
-    lista.innerHTML = "";
-    items.forEach(function (texto) {
-        const li = document.createElement("li");
-        li.textContent = texto;
-        lista.appendChild(li);
-    });
+/* ---------- 5. Clasifica la función con if / else ---------- */
+function clasificar(b, c) {
+  if (b !== 0 && c === 0) {
+    return "lineal";
+  } else if (b !== 0 && c !== 0) {
+    return "afin";
+  } else if (b === 0 && c !== 0) {
+    return "constante";
+  } else {
+    return "nofuncion";   // b = 0 y c = 0
+  }
 }
 
-function limpiarCaja(caja, lista) {
-    caja.classList.remove("activa");
-    lista.innerHTML = '<li class="vacio">No corresponde a esta función.</li>';
+/* ---------- 6. Propiedades de cada tipo de función ---------- */
+function obtenerPropiedades(tipo, b, c) {
+  if (tipo === "lineal") {
+    return [
+      "Gráfica: línea recta continua.",
+      "Pasa por el origen (0, 0).",
+      b > 0
+        ? "Pendiente b = " + b + " > 0: función creciente."
+        : "Pendiente b = " + b + " < 0: función decreciente."
+    ];
+  }
+  if (tipo === "afin") {
+    return [
+      "Gráfica: línea recta que no pasa por el origen.",
+      "Corta el eje Y en (0, " + c + ").",
+      b > 0
+        ? "Pendiente b = " + b + " > 0: función creciente."
+        : "Pendiente b = " + b + " < 0: función decreciente.",
+      "Es la traslación vertical de f(x) = " + b + "x en " + c + " unidades."
+    ];
+  }
+  if (tipo === "constante") {
+    return [
+      "Gráfica: recta horizontal y = " + c + ".",
+      "Corta el eje Y en (0, " + c + ") y no corta el eje X.",
+      "Pendiente b = 0: ni crece ni decrece.",
+      "Todos los valores de x tienen la misma imagen: " + c + "."
+    ];
+  }
+  /* tipo "nofuncion" */
+  return [
+    "Con b = 0 y c = 0 resulta f(x) = 0.",
+    "No es de primer grado: no hay término en x ni constante distinta de cero.",
+    "Su gráfica es el propio eje X (y = 0)."
+  ];
 }
 
-function generar() {
-    const b = enteroAleatorio();
-    const c = enteroAleatorio();
+/* ---------- 7. Muestra las propiedades solo en la caja correspondiente ---------- */
+function mostrarClasificacion(tipo, b, c) {
+  /* Primero limpia todas las cajas */
+  for (const nombre in cajas) {
+    cajas[nombre].classList.remove("activa");
+    cajas[nombre].querySelector(".propiedades").innerHTML = "";
+  }
 
-    valorB.textContent = b;
-    valorC.textContent = c;
-    funcionActual.textContent = escribirFuncion(b, c);
-
-    if (c === 0) {
-        // FUNCIÓN LINEAL
-        cajaLineal.classList.add("activa");
-        mostrarLista(listaLineal, [
-            "Expresión: f(x) = " + b + "x",
-            "Gráfica: línea recta continua.",
-            "Pasa obligatoriamente por el origen (0, 0).",
-            textoPendiente(b)
-        ]);
-        limpiarCaja(cajaAfin, listaAfin);
-    } else {
-        // FUNCIÓN AFÍN
-        cajaAfin.classList.add("activa");
-        mostrarLista(listaAfin, [
-            "Expresión: " + escribirFuncion(b, c),
-            "Gráfica: línea recta que no pasa por el origen.",
-            "Corta el eje Y en el punto (0, " + c + ").",
-            textoPendiente(b),
-            "Es una traslación vertical de f(x) = " + b + "x en " + c + " unidades."
-        ]);
-        limpiarCaja(cajaLineal, listaLineal);
-    }
+  /* Luego llena y resalta únicamente la caja que corresponde */
+  const lista = cajas[tipo].querySelector(".propiedades");
+  obtenerPropiedades(tipo, b, c).forEach(function (texto) {
+    const item = document.createElement("li");
+    item.textContent = texto;
+    lista.appendChild(item);
+  });
+  cajas[tipo].classList.add("activa");
 }
 
-btnGenerar.addEventListener("click", generar);
+/* ---------- 8. Dibuja el plano cartesiano y la función ---------- */
+function dibujarGrafica(b, c) {
+  const ancho = lienzo.width;
+  const alto = lienzo.height;
+  const unidades = 10;               // el plano va de -10 a 10 en ambos ejes
+  const paso = ancho / (2 * unidades);
+  const centro = ancho / 2;
+
+  /* Convierte coordenadas matemáticas a píxeles */
+  const px = (x) => centro + x * paso;
+  const py = (y) => centro - y * paso;
+
+  ctx.clearRect(0, 0, ancho, alto);
+
+  /* Cuadrícula */
+  ctx.strokeStyle = "#ffedd5";
+  ctx.lineWidth = 1;
+  for (let i = -unidades; i <= unidades; i++) {
+    ctx.beginPath(); ctx.moveTo(px(i), 0); ctx.lineTo(px(i), alto); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, py(i)); ctx.lineTo(ancho, py(i)); ctx.stroke();
+  }
+
+  /* Ejes X e Y */
+  ctx.strokeStyle = "#c2410c";
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(0, centro); ctx.lineTo(ancho, centro); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(centro, 0); ctx.lineTo(centro, alto); ctx.stroke();
+
+  /* Recta f(x) = bx + c, evaluada en los bordes del plano */
+  ctx.strokeStyle = "#f97316";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(px(-unidades), py(b * -unidades + c));
+  ctx.lineTo(px(unidades),  py(b * unidades + c));
+  ctx.stroke();
+
+  /* Punto donde la recta corta el eje Y: (0, c) */
+  ctx.fillStyle = "#c2410c";
+  ctx.beginPath();
+  ctx.arc(px(0), py(c), 5, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+/* ---------- 9. Evento del botón: genera b y c y actualiza todo ---------- */
+botonGenerar.addEventListener("click", function () {
+  const b = enteroAleatorio(MINIMO, MAXIMO);
+  const c = enteroAleatorio(MINIMO, MAXIMO);
+
+  /* Muestra los coeficientes (con el signo menos tipográfico) */
+  salidaB.textContent = String(b).replace("-", "−");
+  salidaC.textContent = String(c).replace("-", "−");
+
+  /* Muestra la función, clasifica y actualiza cajas y gráfica */
+  textoFuncion.textContent = escribirFuncion(b, c);
+  mostrarClasificacion(clasificar(b, c), b, c);
+  dibujarGrafica(b, c);
+});
+
+/* ---------- 10. Gráfica inicial vacía (solo ejes) al cargar la página ---------- */
+dibujarGrafica(0, 0);
